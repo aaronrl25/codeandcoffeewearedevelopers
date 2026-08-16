@@ -76,6 +76,10 @@ export function RegisterPage() {
       // Move focus to the confirmation so screen reader users land on it.
       window.setTimeout(() => successRef.current?.focus(), 0)
     } catch (error) {
+      // Keep the Firebase error code visible to operators. The attendee still
+      // gets a short, non-technical message below, but failures are no longer
+      // impossible to diagnose from the browser console.
+      console.error('Registration write failed', error)
       setStatus('error')
       if (error instanceof DuplicateRegistrationError) {
         setErrors({ linkedinUrl: 'This LinkedIn profile is already registered.' })
