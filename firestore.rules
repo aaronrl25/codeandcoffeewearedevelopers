@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isValidRegistration(data) {
+      return data.keys().hasOnly([
+               'firstName', 'lastName', 'email', 'phone', 'linkedinUrl', 'linkedinKey',
+               'event', 'createdAtIso', 'registrationDate', 'registrationTime', 'timeZone',
+               'createdAt'
+             ])
+        && data.firstName is string && data.firstName.size() > 0 && data.firstName.size() <= 60
+        && data.lastName is string  && data.lastName.size() > 0  && data.lastName.size() <= 60
+        && data.email is string && data.email.size() <= 254
+           && data.email.matches('[^\\s@,=+\\-][^\\s@,]*@[^\\s@,]+\\.[^\\s@,.]{2,}')
+        // Optional: empty string, or a plausible phone number.
+        && data.phone is string && data.phone.size() <= 24
+           && (data.phone == '' || data.phone.matches('\\+?[0-9 ().\\-/]{6,24}'))
+        && data.linkedinUrl is string && data.linkedinUrl.matches('https://www\\.linkedin\\.com/(in|pub)/[^/]+')
+        && data.linkedinKey is string && data.linkedinKey.size() <= 200
+        && data.event is string && data.event.size() <= 120
+        && data.createdAtIso is string
+        && data.registrationDate is string
+        && data.registrationTime is string
+        && data.timeZone is string;
+    }
+
+    // Attendee records: anyone may register, only organizers may read the list.
+    match /registrations/{registrationId} {
+      allow create: if isValidRegistration(request.resource.data);
+      allow read: if isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    // Duplicate guard. Document id is the normalised LinkedIn key and holds no
+    // personal data, so a public `get` only ever answers "is this key taken?".
+    // `create` with no update/delete is what makes the key permanently unique —
+    // a second registration for the same profile is rejected by the server.
+    match /linkedinIndex/{linkedinKey} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['createdAt']);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // Organizer allowlist. Add a document with the organizer's auth UID as its
+    // id to grant access; the client only ever reads its own entry.
+    match /admins/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, write: if false;
+    }
+  }
+}

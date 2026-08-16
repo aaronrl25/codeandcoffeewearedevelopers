@@ -1,0 +1,48 @@
+@import 'tailwindcss';
+
+/*
+ * Palette sampled directly from the WeAreDevelopers World Congress banner so
+ * the page and the artwork are the same design, not neighbours.
+ *
+ * Contrast against white is noted where it matters. The brand crimson is only
+ * 3.9:1, which fails AA for 16px text, so interactive surfaces use the slightly
+ * deeper `crimson` / `crimson-ink` steps and the pure brand tone is reserved
+ * for decorative marks.
+ */
+@theme {
+  --color-brand-crimson-pure: #ff0049; /* logo tone, decorative only */
+  --color-brand-crimson: #e00042; /* button fill, white text — 4.9:1 */
+  --color-brand-crimson-ink: #c40039; /* crimson text on white — 6.2:1 */
+  --color-brand-navy: #000d2c; /* headline navy — 19:1 */
+  --color-brand-blue: #1357e2; /* "North America" blue — 6.0:1 */
+  --color-brand-grey: #747474; /* secondary text — 4.7:1 */
+
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f6f7f9;
+  --color-surface-line: #e4e7ec;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-surface text-brand-navy antialiased;
+}
+
+/* Visible, consistent focus ring for keyboard users. */
+:where(a, button, input, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand-blue);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
