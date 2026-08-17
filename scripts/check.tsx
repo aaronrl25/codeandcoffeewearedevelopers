@@ -56,9 +56,17 @@ check('canonical URL matches the firestore.rules pattern', () => {
 })
 
 // --- Validation --------------------------------------------------------
-check('empty form reports the four required fields, but not optional phone', () => {
+check('empty form reports only the three required fields', () => {
   const errors = validate({ firstName: '', lastName: '', email: '', phone: '', linkedinUrl: '' })
-  assert.deepEqual(Object.keys(errors).sort(), ['email', 'firstName', 'lastName', 'linkedinUrl'])
+  assert.deepEqual(Object.keys(errors).sort(), ['email', 'firstName', 'lastName'])
+})
+
+check('LinkedIn is optional but validated when supplied', () => {
+  const base = { firstName: 'A', lastName: 'B', email: 'a@example.com', phone: '' }
+  assert.equal(validate({ ...base, linkedinUrl: '' }).linkedinUrl, undefined)
+  assert.equal(validate({ ...base, linkedinUrl: '   ' }).linkedinUrl, undefined)
+  assert.ok(validate({ ...base, linkedinUrl: 'https://example.com/in/a' }).linkedinUrl)
+  assert.equal(validate({ ...base, linkedinUrl: 'linkedin.com/in/a' }).linkedinUrl, undefined)
 })
 
 check('accented and hyphenated names are accepted', () => {

@@ -21,7 +21,8 @@ service cloud.firestore {
         // Optional: empty string, or a plausible phone number.
         && data.phone is string && data.phone.size() <= 24
            && (data.phone == '' || data.phone.matches('\\+?[0-9 ().\\-/]{6,24}'))
-        && data.linkedinUrl is string && data.linkedinUrl.matches('https://www\\.linkedin\\.com/(in|pub)/[^/]+')
+        && data.linkedinUrl is string
+           && (data.linkedinUrl == '' || data.linkedinUrl.matches('https://www\\.linkedin\\.com/(in|pub)/[^/]+'))
         && data.linkedinKey is string && data.linkedinKey.size() <= 200
         && data.event is string && data.event.size() <= 120
         && data.createdAtIso is string

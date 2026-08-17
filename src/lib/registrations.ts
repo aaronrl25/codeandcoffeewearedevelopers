@@ -57,11 +57,16 @@ export async function isLinkedInRegistered(rawUrl: string): Promise<boolean> {
  * concurrent double submissions safe.
  */
 export async function addRegistration(input: RegistrationInput): Promise<Registration> {
-  const key = linkedInKey(input.linkedinUrl)
-  const linkedinUrl = canonicalLinkedInUrl(input.linkedinUrl)
-  if (!key || !linkedinUrl) throw new Error('Invalid LinkedIn profile URL.')
+  const rawLinkedInUrl = input.linkedinUrl.trim()
+  const parsedKey = rawLinkedInUrl ? linkedInKey(rawLinkedInUrl) : ''
+  const parsedLinkedInUrl = rawLinkedInUrl ? canonicalLinkedInUrl(rawLinkedInUrl) : ''
+  if (rawLinkedInUrl && (!parsedKey || !parsedLinkedInUrl)) {
+    throw new Error('Invalid LinkedIn profile URL.')
+  }
+  const key = parsedKey ?? ''
+  const linkedinUrl = parsedLinkedInUrl ?? ''
 
-  if (await isLinkedInRegistered(input.linkedinUrl)) throw new DuplicateRegistrationError()
+  if (key && (await isLinkedInRegistered(rawLinkedInUrl))) throw new DuplicateRegistrationError()
 
   const now = new Date()
   const record: Omit<Registration, 'id'> = {
@@ -81,7 +86,7 @@ export async function addRegistration(input: RegistrationInput): Promise<Registr
   const batch = writeBatch(db)
   // The rules only grant `create` on the index, so this set is rejected rather
   // than silently overwriting when the key is already taken.
-  batch.set(doc(db, LINKEDIN_INDEX, key), { createdAt: serverTimestamp() })
+  if (key) batch.set(doc(db, LINKEDIN_INDEX, key), { createdAt: serverTimestamp() })
   batch.set(registrationRef, { ...record, createdAt: serverTimestamp() })
 
   try {
@@ -89,7 +94,7 @@ export async function addRegistration(input: RegistrationInput): Promise<Registr
   } catch (error) {
     // A losing race against a simultaneous submission surfaces as a rules
     // rejection on the already-existing index document.
-    if (isPermissionDenied(error) && (await isLinkedInRegistered(input.linkedinUrl))) {
+    if (key && isPermissionDenied(error) && (await isLinkedInRegistered(rawLinkedInUrl))) {
       throw new DuplicateRegistrationError()
     }
     throw error

@@ -236,9 +236,8 @@ export function RegisterPage() {
             type="url"
             inputMode="url"
             autoComplete="url"
-            required
             placeholder="https://www.linkedin.com/in/ada-lovelace"
-            hint="We use this to connect with you and to keep the list free of duplicates."
+            hint="Optional. We use this to connect with you and prevent duplicate profiles."
             value={values.linkedinUrl}
             error={errors.linkedinUrl}
             disabled={submitting}

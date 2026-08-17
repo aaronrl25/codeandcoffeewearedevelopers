@@ -12,8 +12,9 @@ export interface Registration {
   email: string
   /** Optional. Empty string when the attendee did not provide one. */
   phone: string
+  /** Optional. Empty string when the attendee did not provide one. */
   linkedinUrl: string
-  /** Normalised LinkedIn handle used as the duplicate key. */
+  /** Normalised LinkedIn handle used as the duplicate key; empty when omitted. */
   linkedinKey: string
   event: string
   /** ISO-8601 UTC timestamp of the registration. */

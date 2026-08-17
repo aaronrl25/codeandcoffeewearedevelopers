@@ -95,8 +95,7 @@ export function validate(values: RegistrationInput): FieldErrors {
   }
 
   const linkedin = values.linkedinUrl.trim()
-  if (!linkedin) errors.linkedinUrl = 'Please enter your LinkedIn profile URL.'
-  else if (!linkedInKey(linkedin))
+  if (linkedin && !linkedInKey(linkedin))
     errors.linkedinUrl = 'Enter a full profile URL, e.g. linkedin.com/in/your-name'
 
   return errors
